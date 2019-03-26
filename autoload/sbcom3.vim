@@ -103,22 +103,23 @@ fun! sbcom3#find() " 主函数
     call add(g:sbcom3_matched, theword)
   endif
   if (g:sbcom3_matched == [])
-    call sbcom3#fix(theword, thelen, alltext)
+    call sbcom3#fix(theword, thelen, alltext, thetail)
   else
-    call sbcom3#delete(thelen)
+    call sbcom3#replace(thelen, thetail)
   endif
   return ""
 endfun
 
-fun! sbcom3#delete(thelen) " 删除光标处的单词
-  let isend = 0
-  if (col(".") == len(getline(line("."))))
-    let isend = 1
-  endif
+fun! sbcom3#replace(thelen, thetail)
+  call cursor([line("."), a:thetail + 2])
   call complete(col(".") - a:thelen, g:sbcom3_matched)
+  echom a:thetail
+  echom col(".") - 2
 endfun
 
-fun! sbcom3#fix(theword, thelen, alltext)
+
+
+fun! sbcom3#fix(theword, thelen, alltext, thetail)
   for i in a:alltext
     let allin = 1 " 是否有匹配的flag
     let j = 0
@@ -142,7 +143,7 @@ fun! sbcom3#fix(theword, thelen, alltext)
     endif
   endfor
   if (len(g:sbcom3_matched)!= 0)
-    call sbcom3#delete(a:thelen) " 再次调用删除,插入函数
+    call sbcom3#replace(a:thelen, a:thetail) " 再次调用删除,插入函数
   endif
 endfun
 

@@ -5,8 +5,6 @@ let g:sbcom3_isword = ""
 " 不算进单词的部分
 let g:sbcom3_issplit = ""
 
-inoremap <F5> <c-r>=sbcom3#find()<cr>
-
 if (exists('g:sbcom3_active')&&(g:sbcom3_active != 0)) " 启动插件
   if (exists('g:sbcom3_trigger')) " 有自定义按键
     au BufEnter * execute("inoremap ".g:sbcom3_trigger." <c-r>=sbcom3#find()<cr>")
