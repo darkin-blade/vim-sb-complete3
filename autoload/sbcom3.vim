@@ -117,8 +117,6 @@ fun! sbcom3#replace(thelen, thetail)
   echom col(".") - 2
 endfun
 
-
-
 fun! sbcom3#fix(theword, thelen, alltext, thetail)
   for i in a:alltext
     let allin = 1 " 是否有匹配的flag
