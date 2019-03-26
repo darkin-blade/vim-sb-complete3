@@ -89,8 +89,9 @@ fun! Sbcom3_find() " 主函数
   let alltext = []
   let rightspell = -1 " 如果为1,说明是正确的单词
   for i in alltext_temp
-    if (i == theword)
+    if (i == theword) " 相同单词
       let rightspell += 1
+      continue
     endif
     if (Sbcom3_exist(i, alltext))
       continue
@@ -101,56 +102,54 @@ fun! Sbcom3_find() " 主函数
   let g:sbcom3_matched = [] " 匹配的单词组成的list,清空
   for i in alltext
     if (match(i, theregular) != -1) " 找到正则匹配
-      if ((theword == i)&&(rightspell < 1)) " 无效拼写
+      if (theword == i) " 相同单词
         continue
       endif
       call add(g:sbcom3_matched, i)
     endif
   endfor
-  call complete(col("."), g:sbcom3_matched)
+  if (rightspell >= 1) " 目前的单词是有效的
+    call add(g:sbcom3_matched, theword)
+  endif
+  if (g:sbcom3_matched == [])
+    call Sbcom3_fix()
+    echom Sbcom3_exist(theword, alltext)
+  else
+    call Sbcom3_delete(thelen)
+  endif
   return ""
 endfun
 
-""  fun! Sbcom3_delete(thislen) " 删除光标处的单词
-""  " 跳转到单词头部
-""    if ((col(".") != 1)&&(match(getline(line("."))[col(".") - 2], g:sbcom3_isword)) != -1) " 是否位于单词头部,特判行首的情况
-""      execute("normal! b")
-""    endif 
-""  " 跳转到单词尾部
-""    if (a:thislen != 1) " 判断单词长度是否为1
-""      execute("normal! e") 
-""    endif
-""  " 判断单词是否处于行末
-""    let oldcursor = col(".")
-""    if (col(".") == len(getline(line("."))))
-""      let thisend = 1 " 位于行末
-""    else
-""      let thisend = 0 " 不位于行末
-""    endif
-""  " 跳转回单词头部
-""    if (a:thislen != 1) " 单词是否只有一个字母
-""      execute("normal! b")
-""    endif
-""  " 删除单词
-""    if (a:thislen == 1) " 单词只有一个字母
-""      execute("normal! x")
-""    else " 不需要往前跳转
-""      execute("normal! de")
-""    endif
-""    if (thisend == 1) " 位于行末
-""      execute("normal! a".g:sbcom3_matched[g:sbcom3_wordnth])
-""    else " 不位于行末
-""      execute("normal! i".g:sbcom3_matched[g:sbcom3_wordnth])
-""    endif
-""  " 解决函数缩进问题,待改进
-""    if (oldcursor - a:thislen + len(g:sbcom3_matched[g:sbcom3_wordnth]) > col("."))
-""      if (match(g:sbcom3_matched[g:sbcom3_wordnth], "end") == -1)
-""        execute("normal! >>A")
-""      endif
-""    endif
-""  endfun
-""  
-""  fun! Sbcom3_fix(originword, thislen, alltext)
+fun! Sbcom3_delete(thelen) " 删除光标处的单词
+" 跳转到单词头部
+  if ((col(".") != 1)&&(match(getline(line("."))[col(".") - 2], g:sbcom3_isword)) != -1) " 是否位于单词头部,特判行首的情况
+    execute("normal! b")
+  endif 
+" 跳转到单词尾部
+  if (a:thelen != 1) " 判断单词长度是否为1
+    execute("normal! e") 
+  endif
+" 判断单词是否处于行末
+  let oldcursor = col(".")
+  if (col(".") == len(getline(line("."))))
+    let thisend = 1 " 位于行末
+  else
+    let thisend = 0 " 不位于行末
+  endif
+" 跳转回单词头部
+  if (a:thelen != 1) " 单词是否只有一个字母
+    execute("normal! b")
+  endif
+" 删除单词
+  if (a:thelen == 1) " 单词只有一个字母
+    execute("normal! x")
+  else " 不需要往前跳转
+    execute("normal! de")
+  endif
+  call complete(col("."), g:sbcom3_matched)
+endfun
+
+""  fun! Sbcom3_fix(originword, thelen, alltext)
 ""    " echom "correct:".a:originword
 ""    for i in a:linetext
 ""      let allin = 1 " 是否有匹配的flag
@@ -175,6 +174,6 @@ endfun
 ""      endif
 ""    endfor
 ""    if (len(g:sbcom3_matched)!= 0)
-""      call Sbcom3_delete(a:thislen) " 再次调用删除,插入函数
+""      call Sbcom3_delete(a:thelen) " 再次调用删除,插入函数
 ""    endif
 ""  endfun
