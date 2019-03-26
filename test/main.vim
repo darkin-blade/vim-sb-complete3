@@ -112,8 +112,7 @@ fun! Sbcom3_find() " 主函数
     call add(g:sbcom3_matched, theword)
   endif
   if (g:sbcom3_matched == [])
-    return ""
-    call Sbcom3_fix(theword, alltext, thelen)
+    call Sbcom3_fix(theword, thelen, alltext)
   else
     call Sbcom3_delete(thelen)
   endif
@@ -128,19 +127,18 @@ fun! Sbcom3_delete(thelen) " 删除光标处的单词
   call complete(col(".") - a:thelen, g:sbcom3_matched)
 endfun
 
-fun! Sbcom3_fix(originword, funthelen, alltext)
-  return ""
-  for i in a:linetext
+fun! Sbcom3_fix(theword, thelen, alltext)
+  for i in a:alltext
     let allin = 1 " 是否有匹配的flag
     let j = 0
-    while j < len(a:originword)
-      if (match(i, a:originword[j]) == -1) " 比较所有字母是否存在于另一个单词中
+    while j < len(a:theword)
+      if (match(i, a:theword[j]) == -1) " 比较所有字母是否存在于另一个单词中
         let allin = 0 " 匹配失败
         break
       endif
       let j += 1
     endwhile
-    if ((allin == 1)&&(i != a:originword))
+    if ((allin == 1)&&(i != a:theword))
       if (len(g:sbcom3_matched) == 0) " 第一个匹配
         let g:sbcom3_matched = [i]
         let g:sbcom3_wordnum = 1
