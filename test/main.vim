@@ -46,31 +46,37 @@ fun! Sbcom3_find() " 主函数
   let thehead += 1
   let thetail -= 1
   let theword = theline[thehead:thetail]
-  "==获取了单词==
+  let thelen = len(theword)
+  if (thelen == 0)
     return []
-""    let thislen = len(expand("<cword>")) " 光标单词的长度
-""    let linetext = getline(0, 1000) " 获取全文
-""    let linetemp = linetext 
-""    let linetext = []
-""    for i in linetemp 
-""      let linetext += split(i, g:sbcom3_issplit) " 先去除非转义,非单词字符
-""    endfor 
-""    for j in ["!", "(", ")", "-", "?"] " 去除转义字符
-""      let linetemp = linetext  
-""      let linetext = []
-""      for i in linetemp
-""        let linetext += split(i, j)
-""      endfor  
-""    endfor 
+  endif
+  let theregular = Sbcom3_insert(theword)
+  "==获取了目前单词==
+  let alltext = getline(0, 1000)
+  let alltext_temp = alltext 
+  let alltext = []
+  for i in alltext_temp 
+    let alltext += split(i, g:sbcom3_issplit) " 先去除非转义,非单词字符
+  endfor 
+  for j in ["!", "(", ")", "-", "?"] " 去除转义字符
+    let alltext_temp = alltext  
+    let alltext = []
+    for i in alltext_temp
+      let alltext += split(i, j)
+    endfor  
+  endfor 
+  "==获取了全部单词==
+  let g:sbcom3_wordmatched = [] " 匹配的单词组成的list,清空
+    return []
 ""  "  清空全局变量
 ""    let g:sbcom3_wordnth = 0 " 匹配的单词中第几个单词,清空
 ""    let g:sbcom3_wordmatched = [] " 匹配的单词组成的list,清空
 ""    if (thislen != 0) " 获取的单词含字母
 ""      let wordthis = Sbcom3_insert(wordthis) " 变成正则表达式,不建议向前匹配
 ""    endif
-""    call sort(linetext) " 按字典序排序
+""    call sort(alltext) " 按字典序排序
 ""    let self = 0
-""    for i in linetext
+""    for i in alltext
 ""      if (match(i, wordthis) == 0) " 找到匹配且不是光标处单词本身
 ""        if (expand("<cword>") == i)
 ""          if (self == 0)
@@ -94,7 +100,7 @@ fun! Sbcom3_find() " 主函数
 ""      return
 ""    else " 匹配为空
 ""      " echom "no matched"
-""      call Sbcom3_fix(expand("<cword>"), thislen, linetext)
+""      call Sbcom3_fix(expand("<cword>"), thislen, alltext)
 ""      return
 ""    endif
 endfun
@@ -138,7 +144,7 @@ endfun
 ""    endif
 ""  endfun
 ""  
-""  fun! Sbcom3_fix(originword, thislen, linetext)
+""  fun! Sbcom3_fix(originword, thislen, alltext)
 ""    " echom "correct:".a:originword
 ""    for i in a:linetext
 ""      let allin = 1 " 是否有匹配的flag
