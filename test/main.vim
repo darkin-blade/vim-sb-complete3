@@ -1,13 +1,9 @@
 " 全部匹配的单词
-let g:sbcom3_wordmatched = []
+let g:sbcom3_matched = []
 " 算进单词的部分,不包括中文字符
 let g:sbcom3_isword = ""
 " 不算进单词的部分
 let g:sbcom3_issplit = ""
-" 下一个切换的单词
-let g:sbcom3_wordnth = 0
-" 总共匹配数
-let g:sbcom3_wordnum = 0
 
 inoremap <F5> <c-r>=Sbcom3_find()<cr>
 
@@ -22,22 +18,32 @@ fun! Sbcom3_isword()
 endfun
 
 fun! Sbcom3_insert(word) " 将单词改成正则表达式
-  let wordthis = a:word
-  let wordlen = len(wordthis)
-  let i = wordlen - 1
+  let theword = a:word
+  let thelen = len(theword)
+  let i = thelen - 1
   while i >= 0
-    let wordthis = wordthis[0:i] . "\.*" . wordthis[i + 1:len(wordthis) - 1] " 从第一个字母到最后一个字母全部增加正则表达式
+    let theword = theword[0:i] . "\.*" . theword[i + 1:len(theword) - 1] " 从第一个字母到最后一个字母全部增加正则表达式
     let i -= 1
   endwhile
-  return wordthis
+  return theword
+endfun
+
+fun! Sbcom3_exist(elem, lists)
+  for i in a:lists
+    if (a:elem == i)
+      return 1
+    endif
+  endfor
+  return 0
 endfun
 
 fun! Sbcom3_find() " 主函数
+  "==获取目前单词==
   call Sbcom3_isword()
   let theline = getline(line("."))
   let thehead = col(".") - 2
   let thetail = thehead
-  while ((match(theline[thehead], g:sbcom3_isword) != -1)&&(thehead >= 1))
+  while ((match(theline[thehead], g:sbcom3_isword) != -1)&&(thehead >= 0))
     let thehead -= 1
   endwhile
   while ((match(theline[thetail], g:sbcom3_isword) != -1)&&(1))
@@ -48,11 +54,24 @@ fun! Sbcom3_find() " 主函数
   let theword = theline[thehead:thetail]
   let thelen = len(theword)
   if (thelen == 0)
+    echom "invalid --sbcom3"
     return []
   endif
   let theregular = Sbcom3_insert(theword)
-  "==获取了目前单词==
-  let alltext = getline(0, 1000)
+  "==获取全部单词==
+  let lineup = line(".")
+  let linedown = line(".") + 1
+  let alltext = []
+  while ((lineup >= 1)||(linedown <= len(getline(0, 1000)))) " 按就近添加行
+    if (lineup >= 1)
+      let alltext += getline(lineup, lineup)
+    endif
+    if (linedown <= len(getline(0, 1000)))
+      let alltext += getline(linedown, linedown)
+    endif
+    let lineup -= 1
+    let linedown += 1
+  endwhile
   let alltext_temp = alltext 
   let alltext = []
   for i in alltext_temp 
@@ -65,44 +84,31 @@ fun! Sbcom3_find() " 主函数
       let alltext += split(i, j)
     endfor  
   endfor 
-  "==获取了全部单词==
-  let g:sbcom3_wordmatched = [] " 匹配的单词组成的list,清空
-    return []
-""  "  清空全局变量
-""    let g:sbcom3_wordnth = 0 " 匹配的单词中第几个单词,清空
-""    let g:sbcom3_wordmatched = [] " 匹配的单词组成的list,清空
-""    if (thislen != 0) " 获取的单词含字母
-""      let wordthis = Sbcom3_insert(wordthis) " 变成正则表达式,不建议向前匹配
-""    endif
-""    call sort(alltext) " 按字典序排序
-""    let self = 0
-""    for i in alltext
-""      if (match(i, wordthis) == 0) " 找到匹配且不是光标处单词本身
-""        if (expand("<cword>") == i)
-""          if (self == 0)
-""            let self = 1
-""            continue
-""          endif
-""        endif
-""        if (len(g:sbcom3_wordmatched) != 0) " 是所有匹配单词中的第一个单词
-""          if (i != g:sbcom3_wordmatched[len(g:sbcom3_wordmatched) - 1]) " 单词去重
-""            call add(g:sbcom3_wordmatched, i) " 增加到wordmatched
-""          endif
-""        else " 不是所有匹配中的第一个单词
-""          call add(g:sbcom3_wordmatched, i)
-""        endif
-""      endif
-""    endfor
-""  " 第一次匹配  
-""    let g:sbcom3_wordnum = len(g:sbcom3_wordmatched) " 总匹配数
-""    if (g:sbcom3_wordnum != 0) " 匹配不为空
-""      call Sbcom3_delete(thislen) " 删除当前单词
-""      return
-""    else " 匹配为空
-""      " echom "no matched"
-""      call Sbcom3_fix(expand("<cword>"), thislen, alltext)
-""      return
-""    endif
+  "==单词去重==
+  let alltext_temp = alltext
+  let alltext = []
+  let rightspell = -1 " 如果为1,说明是正确的单词
+  for i in alltext_temp
+    if (i == theword)
+      let rightspell += 1
+    endif
+    if (Sbcom3_exist(i, alltext))
+      continue
+    endif
+    let alltext += [i]
+  endfor
+  "==单词匹配==
+  let g:sbcom3_matched = [] " 匹配的单词组成的list,清空
+  for i in alltext
+    if (match(i, theregular) != -1) " 找到正则匹配
+      if ((theword == i)&&(rightspell < 1)) " 无效拼写
+        continue
+      endif
+      call add(g:sbcom3_matched, i)
+    endif
+  endfor
+  call complete(col("."), g:sbcom3_matched)
+  return ""
 endfun
 
 ""  fun! Sbcom3_delete(thislen) " 删除光标处的单词
@@ -132,13 +138,13 @@ endfun
 ""      execute("normal! de")
 ""    endif
 ""    if (thisend == 1) " 位于行末
-""      execute("normal! a".g:sbcom3_wordmatched[g:sbcom3_wordnth])
+""      execute("normal! a".g:sbcom3_matched[g:sbcom3_wordnth])
 ""    else " 不位于行末
-""      execute("normal! i".g:sbcom3_wordmatched[g:sbcom3_wordnth])
+""      execute("normal! i".g:sbcom3_matched[g:sbcom3_wordnth])
 ""    endif
 ""  " 解决函数缩进问题,待改进
-""    if (oldcursor - a:thislen + len(g:sbcom3_wordmatched[g:sbcom3_wordnth]) > col("."))
-""      if (match(g:sbcom3_wordmatched[g:sbcom3_wordnth], "end") == -1)
+""    if (oldcursor - a:thislen + len(g:sbcom3_matched[g:sbcom3_wordnth]) > col("."))
+""      if (match(g:sbcom3_matched[g:sbcom3_wordnth], "end") == -1)
 ""        execute("normal! >>A")
 ""      endif
 ""    endif
@@ -157,18 +163,18 @@ endfun
 ""        let j += 1
 ""      endwhile
 ""      if ((allin == 1)&&(i != a:originword))
-""        if (len(g:sbcom3_wordmatched) == 0) " 第一个匹配
-""          let g:sbcom3_wordmatched = [i]
+""        if (len(g:sbcom3_matched) == 0) " 第一个匹配
+""          let g:sbcom3_matched = [i]
 ""          let g:sbcom3_wordnum = 1
 ""        else
-""          if (i != g:sbcom3_wordmatched[len(g:sbcom3_wordmatched) - 1]) " 后面的匹配
-""            let g:sbcom3_wordmatched += [i]
+""          if (i != g:sbcom3_matched[len(g:sbcom3_matched) - 1]) " 后面的匹配
+""            let g:sbcom3_matched += [i]
 ""            let g:sbcom3_wordnum += 1
 ""          endif
 ""        endif
 ""      endif
 ""    endfor
-""    if (len(g:sbcom3_wordmatched)!= 0)
+""    if (len(g:sbcom3_matched)!= 0)
 ""      call Sbcom3_delete(a:thislen) " 再次调用删除,插入函数
 ""    endif
 ""  endfun
