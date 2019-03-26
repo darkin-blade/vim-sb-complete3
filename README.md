@@ -65,6 +65,5 @@ Don't use this command in commandline directly
 ### New features comparing to vim-sb-complete2
 
 1. it has the candidate columns of words
-
 2. it can be record into the reg `.` in `cgn` mode
-
+3. better support for special characters such as CJK
