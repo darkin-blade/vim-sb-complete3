@@ -16,6 +16,14 @@ the most lightweight(SHA BI) completion plug of vim
 
 - fix wrong spelling
 
+![](demo/demo4.gif)
+
+- support for words next to CJK
+
+![](demo/demo5.gif)
+
+- can be record into reg
+
 ### Installation
 
 - manual
