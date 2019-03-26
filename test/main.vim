@@ -101,7 +101,7 @@ fun! Sbcom3_find() " 主函数
   "==单词匹配==
   let g:sbcom3_matched = [] " 匹配的单词组成的list,清空
   for i in alltext
-    if (match(i, theregular) != -1) " 找到正则匹配
+    if (match(i, theregular) == 0) " 找到正则匹配
       if (theword == i) " 相同单词
         continue
       endif
@@ -112,8 +112,8 @@ fun! Sbcom3_find() " 主函数
     call add(g:sbcom3_matched, theword)
   endif
   if (g:sbcom3_matched == [])
-    call Sbcom3_fix()
-    echom Sbcom3_exist(theword, alltext)
+    return ""
+    call Sbcom3_fix(theword, alltext, thelen)
   else
     call Sbcom3_delete(thelen)
   endif
@@ -121,59 +121,38 @@ fun! Sbcom3_find() " 主函数
 endfun
 
 fun! Sbcom3_delete(thelen) " 删除光标处的单词
-" 跳转到单词头部
-  if ((col(".") != 1)&&(match(getline(line("."))[col(".") - 2], g:sbcom3_isword)) != -1) " 是否位于单词头部,特判行首的情况
-    execute("normal! b")
-  endif 
-" 跳转到单词尾部
-  if (a:thelen != 1) " 判断单词长度是否为1
-    execute("normal! e") 
-  endif
-" 判断单词是否处于行末
-  let oldcursor = col(".")
+  let isend = 0
   if (col(".") == len(getline(line("."))))
-    let thisend = 1 " 位于行末
-  else
-    let thisend = 0 " 不位于行末
+    let isend = 1
   endif
-" 跳转回单词头部
-  if (a:thelen != 1) " 单词是否只有一个字母
-    execute("normal! b")
-  endif
-" 删除单词
-  if (a:thelen == 1) " 单词只有一个字母
-    execute("normal! x")
-  else " 不需要往前跳转
-    execute("normal! de")
-  endif
-  call complete(col("."), g:sbcom3_matched)
+  call complete(col(".") - a:thelen, g:sbcom3_matched)
 endfun
 
-""  fun! Sbcom3_fix(originword, thelen, alltext)
-""    " echom "correct:".a:originword
-""    for i in a:linetext
-""      let allin = 1 " 是否有匹配的flag
-""      let j = 0
-""      while j < len(a:originword)
-""        if (match(i, a:originword[j]) == -1) " 比较所有字母是否存在于另一个单词中
-""          let allin = 0 " 匹配失败
-""          break
-""        endif
-""        let j += 1
-""      endwhile
-""      if ((allin == 1)&&(i != a:originword))
-""        if (len(g:sbcom3_matched) == 0) " 第一个匹配
-""          let g:sbcom3_matched = [i]
-""          let g:sbcom3_wordnum = 1
-""        else
-""          if (i != g:sbcom3_matched[len(g:sbcom3_matched) - 1]) " 后面的匹配
-""            let g:sbcom3_matched += [i]
-""            let g:sbcom3_wordnum += 1
-""          endif
-""        endif
-""      endif
-""    endfor
-""    if (len(g:sbcom3_matched)!= 0)
-""      call Sbcom3_delete(a:thelen) " 再次调用删除,插入函数
-""    endif
-""  endfun
+fun! Sbcom3_fix(originword, funthelen, alltext)
+  return ""
+  for i in a:linetext
+    let allin = 1 " 是否有匹配的flag
+    let j = 0
+    while j < len(a:originword)
+      if (match(i, a:originword[j]) == -1) " 比较所有字母是否存在于另一个单词中
+        let allin = 0 " 匹配失败
+        break
+      endif
+      let j += 1
+    endwhile
+    if ((allin == 1)&&(i != a:originword))
+      if (len(g:sbcom3_matched) == 0) " 第一个匹配
+        let g:sbcom3_matched = [i]
+        let g:sbcom3_wordnum = 1
+      else
+        if (i != g:sbcom3_matched[len(g:sbcom3_matched) - 1]) " 后面的匹配
+          let g:sbcom3_matched += [i]
+          let g:sbcom3_wordnum += 1
+        endif
+      endif
+    endif
+  endfor
+  if (len(g:sbcom3_matched)!= 0)
+    call Sbcom3_delete(a:thelen) " 再次调用删除,插入函数
+  endif
+endfun
