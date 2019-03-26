@@ -1,4 +1,4 @@
-function sbcom3#main#insert(word) " 将单词改成正则表达式
+fun! sbcom3#main#insert(word) " 将单词改成正则表达式
   let wordthis = a:word
   let wordlen = len(wordthis)
   let i = wordlen - 1
@@ -7,9 +7,9 @@ function sbcom3#main#insert(word) " 将单词改成正则表达式
     let i -= 1
   endwhile
   return wordthis
-endfunction
+endfun
 
-function sbcom3#main#find() " 主函数
+fun! sbcom3#main#find() " 主函数
   let wordthis = expand("<cword>") " 获取当前单词
   let thislen = len(expand("<cword>")) " 光标单词的长度
   if (match(getline(line("."))[col(".") - 1], g:sbcom3_isword) == -1) " 获取的字符不含字母或数字
@@ -76,9 +76,9 @@ function sbcom3#main#find() " 主函数
     call sbcom3#main#fix(expand("<cword>"), thislen, linetext)
     return
   endif
-endfunction
+endfun
 
-function sbcom3#main#delete(thislen) " 删除光标处的单词
+fun! sbcom3#main#delete(thislen) " 删除光标处的单词
 " 跳转到单词头部
   if ((col(".") != 1)&&(match(getline(line("."))[col(".") - 2], g:sbcom3_isword)) != -1) " 是否位于单词头部,特判行首的情况
     execute("normal! b")
@@ -115,9 +115,9 @@ function sbcom3#main#delete(thislen) " 删除光标处的单词
       execute("normal! >>A")
     endif
   endif
-endfunction
+endfun
 
-function sbcom3#main#fix(originword, thislen, linetext)
+fun! sbcom3#main#fix(originword, thislen, linetext)
   " echom "correct:".a:originword
   for i in a:linetext
     let allin = 1 " 是否有匹配的flag
@@ -144,4 +144,4 @@ function sbcom3#main#fix(originword, thislen, linetext)
   if (len(g:sbcom3_wordmatched)!= 0)
     call sbcom3#main#delete(a:thislen) " 再次调用删除,插入函数
   endif
-endfunction
+endfun
