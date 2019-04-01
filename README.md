@@ -43,8 +43,8 @@ let g:sbcom3_active = 1
 ```
 
 2. manual turning off or on
-    - turn off `:SbCom3Off`
-    - turn on `:SbCom3On`
+    - turn off `:Sbcom3Off`
+    - turn on `:Sbcom3On`
 
 3. The default trigger is `<tab>`. If you want to change the trigger, for example, replace `<tab>` with `<space>`, add this to your `~/.vimrc`
 

@@ -15,9 +15,9 @@ if (exists('g:sbcom3_active')&&(g:sbcom3_active != 0)) " 启动插件
 endif
 
 " 关闭插件
-command! SbCom3Off call Sbcom3Toggle(0)
+command! Sbcom3Off call Sbcom3Toggle(0)
 " 开启插件
-command! SbCom3On call Sbcom3Toggle(1)
+command! Sbcom3On call Sbcom3Toggle(1)
 
 fun! Sbcom3Toggle(para)
   if (a:para == 0) " 关闭插件
